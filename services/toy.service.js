@@ -27,6 +27,10 @@ function query(filterBy, sortBy) {
         }
         return nameMatches && inStockMatches
     })
+    if (filterBy.labels && filterBy.labels.length) {
+        const labelsToFilter = filterBy.labels.filter(l => l)
+        toysToShow = toysToShow.filter(toy => labelsToFilter.every(label => toy.labels.includes(label)))
+    }
 
     if (sortBy.type === 'createdAt') {
         toysToShow = toysToShow.sort((b1, b2) => (+sortBy.dir) * (b1.createdAt - b2.createdAt))
