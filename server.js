@@ -1,59 +1,46 @@
 import path from 'path';
 import cors from 'cors';
-
 import express from 'express'
 import cookieParser from 'cookie-parser'
 
 import { toyService } from './services/toy.service.js'
-// import { userService } from './services/user.service.js'
 import { loggerService } from './services/logger.service.js'
 
 const app = express()
 
-const corsOptions = {
-    origin: [
-        'http://127.0.0.1:8080',
-        'http://localhost:8080',
-        'http://127.0.0.1:5173',
-        'http://localhost:5173'
-    ],
-    credentials: true
-}
-
-
 // Express Config:
-app.use(express.static('public'))
-app.use(cookieParser())
 app.use(express.json())
-app.use(cors(corsOptions))
+app.use(cookieParser())
+app.use(express.static('public'))
 
-
-// Express Routing:
-app.get('/puki', (req, res) => {
-    var visitCount = req.cookies.visitCount || 0
-    visitCount++
-    res.cookie('visitCount', visitCount)
-    res.cookie('lastVisitedToyId', 'c101', { maxAge: 60 * 60 * 1000 })
-    res.send('Hello Puki')
-})
-app.get('/nono', (req, res) => res.redirect('/'))
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static('public'))
+} else {
+    const corsOptions = {
+        origin: [
+            'http://127.0.0.1:3000',
+            'http://localhost:3000',
+            'http://localhost:5173',
+            'http://127.0.0.1:5173',
+        ],
+        credentials: true
+    };
+    app.use(cors(corsOptions))
+}
 
 // REST API for toys
 
 // toy LIST
 app.get('/api/toy', (req, res) => {
 
-    const filterBy = {
-        txt: req.query.txt || '',
-        maxPrice: +req.query.maxPrice || 0,
-    }
-    toyService.query(filterBy)
-        .then((toys) => {
+    const { filterBy = {}, sortBy = {} } = req.query.params
+    toyService.query(filterBy, sortBy)
+        .then(toys => {
             res.send(toys)
         })
-        .catch((err) => {
-            loggerService.error('Cannot get toys', err)
-            res.status(400).send('Cannot get toys')
+        .catch(err => {
+            console.log('Had issues getting toys', err);
+            res.status(400).send({ msg: 'Had issues getting toys' })
         })
 })
 
@@ -61,67 +48,52 @@ app.get('/api/toy', (req, res) => {
 app.get('/api/toy/:toyId', (req, res) => {
     const { toyId } = req.params
     toyService.getById(toyId)
-        .then((toy) => {
-            // toy.msgs = ['Hello', 'hey!', 'how are you']
+        .then(toy => {
             res.send(toy)
         })
-        .catch((err) => {
-            loggerService.error('Cannot get toy', err)
-            res.status(400).send('Cannot get toy')
+        .catch(err => {
+            console.log('Had issues getting toy', err);
+            res.status(400).send({ msg: 'Had issues getting toy' })
         })
 })
 
 // toy CREATE
 app.post('/api/toy', (req, res) => {
-    // const loggedinUser = userService.validateToken(req.cookies.loginToken)
-    // if (!loggedinUser) return res.status(401).send('Cannot add toy')
-    const toy = {
-        name: req.body.name,
-        price: +req.body.price,
-
-    }
+    const toy = req.body
     toyService.save(toy)
-        .then((savedToy) => {
+        .then(savedToy => {
             res.send(savedToy)
         })
-        .catch((err) => {
-            loggerService.error('Cannot save toy', err)
-            res.status(400).send('Cannot save toy')
+        .catch(err => {
+            console.log('Had issues adding toy', err);
+            res.status(400).send({ msg: 'Had issues adding toy' })
         })
-
 })
 
 // toy UPDATE
-app.put('/api/toy', (req, res) => {
-    // const loggedinUser = userService.validateToken(req.cookies.loginToken)
-    // if (!loggedinUser) return res.status(401).send('Cannot update toy')
-    const toy = {
-        _id: req.body._id,
-        name: req.body.name,
-        price: +req.body.price,
-    }
+app.put('/api/toy/:id', (req, res) => {
+    const toy = req.body
+
     toyService.save(toy)
-        .then((savedToy) => {
+        .then(savedToy => {
             res.send(savedToy)
         })
-        .catch((err) => {
-            loggerService.error('Cannot save toy', err)
-            res.status(400).send('Cannot save toy')
+        .catch(err => {
+            console.log('Had issues updating toy', err);
+            res.status(400).send({ msg: 'Had issues updating toy' })
         })
 })
 
 // toy DELETE
 app.delete('/api/toy/:toyId', (req, res) => {
-
-    const { toyId } = req.params
+    const toyId = req.params.id
     toyService.remove(toyId)
         .then(() => {
-            loggerService.info(`toy ${toyId} removed`)
-            res.send('Removed!')
+            res.end('Done!')
         })
-        .catch((err) => {
-            loggerService.error('Cannot remove toy', err)
-            res.status(400).send('Cannot remove toy')
+        .catch(err => {
+            console.log('Had issues deleting toy', err);
+            res.status(400).send({ msg: 'Had issues deleteing toy' })
         })
 
 })

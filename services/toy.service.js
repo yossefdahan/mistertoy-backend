@@ -12,11 +12,31 @@ export const toyService = {
 
 const toys = utilService.readJsonFile('data/toy.json')
 
-function query(filterBy = { txt: '' }) {
-    const regex = new RegExp(filterBy.txt, 'i')
-    var toysToReturn = toys.filter(toy => regex.test(toy.name))
+function query(filterBy, sortBy) {
+    let toysToShow = toys
+    if (!filterBy.txt) filterBy.txt = ''
+    const regExp = new RegExp(filterBy.txt, 'i')
 
-    return Promise.resolve(toysToReturn)
+    toysToShow = toysToShow.filter(toy => {
+        const nameMatches = regExp.test(toy.name)
+        let inStockMatches = true
+        if (filterBy.inStock === 'true') {
+            inStockMatches = toy.inStock === true
+        } else if (filterBy.inStock === 'false') {
+            inStockMatches = toy.inStock === false
+        }
+        return nameMatches && inStockMatches
+    })
+
+    if (sortBy.type === 'createdAt') {
+        toysToShow = toysToShow.sort((b1, b2) => (+sortBy.dir) * (b1.createdAt - b2.createdAt))
+    } else if (sortBy.type === 'price') {
+        toysToShow = toysToShow.sort((b1, b2) => (+sortBy.dir) * (b1.price - b2.price))
+    } else if (sortBy.type === 'name') {
+        toysToShow = toysToShow.sort((a, b) => sortBy.dir * a.name.localeCompare(b.name))
+    }
+
+    return Promise.resolve(toysToShow)
 }
 
 function getById(toyId) {
@@ -24,29 +44,24 @@ function getById(toyId) {
     return Promise.resolve(toy)
 }
 
-function remove(toyId) {
-    const idx = toys.findIndex(toy => toy._id === toyId)
-    if (idx === -1) return Promise.reject('No Such toy')
-    // const toy = toys[idx]
-
+function remove(_id) {
+    const idx = toys.findIndex(toy => toy._id === _id)
     toys.splice(idx, 1)
-    return _saveToysToFile()
+    _saveToysToFile()
+    return Promise.resolve()
 }
 
 function save(toy) {
     if (toy._id) {
-        const toyToUpdate = toys.find(currtoy => currtoy._id === toy._id)
-
-        toyToUpdate.name = toy.name
-        toyToUpdate.speed = toy.speed
-        toyToUpdate.price = toy.price
-        toy = toyToUpdate
+        const idx = toys.findIndex(currToy => currToy._id === toy._id)
+        toys[idx] = { ...toys[idx], ...toy }
     } else {
+        toy.createdAt = new Date(Date.now())
         toy._id = utilService.makeId()
-        toys.push(toy)
+        toys.unshift(toy)
     }
-
-    return _saveToysToFile().then(() => toy)
+    _saveToysToFile()
+    return Promise.resolve(toy)
 }
 
 
