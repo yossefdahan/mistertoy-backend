@@ -5,8 +5,8 @@ export async function getToys(req, res) {
 
     try {
         const { filterBy = {}, sortBy = {} } = req.query.params
-        loggerService.debug('Getting Toys', filterBy)
-        loggerService.debug('Getting Toys', sortBy)
+        // loggerService.debug('Getting Toys', filterBy)
+        // loggerService.debug('Getting Toys', sortBy)
 
         const toys = await toyService.query(filterBy, sortBy)
         res.json(toys)

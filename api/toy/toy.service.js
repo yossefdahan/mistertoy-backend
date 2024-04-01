@@ -31,13 +31,10 @@ async function query(filterBy, sortBy) {
             options.sort = { [sortBy.type]: parseInt(sortBy.dir, 10) }
         }
         var toysToShow = await collection.find(criteria, options).sort(options.sort).toArray()
-
         // if (filterBy.pageIdx !== undefined) {
-        //     const pageIdx = +filterBy.pageIdx
-        //     const startIdx = pageIdx * PAGE_SIZE
-        //     toysToShow = toysToShow.slice(startIdx, startIdx + PAGE_SIZE)
+        //     carCursor.skip(filterBy.pageIdx * PAGE_SIZE).limit(PAGE_SIZE)     
         // }
-
+        console.log(toysToShow);
         return toysToShow
     } catch (err) {
         loggerService.error('cannot find toys', err)
@@ -149,7 +146,7 @@ function _buildCriteria(filterBy) {
     if (status) {
         criteria.inStock = status === 'true' ? true : false
     }
-    console.log('criteria', criteria)
+
 
     return criteria
 }

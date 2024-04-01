@@ -34,13 +34,15 @@ if (process.env.NODE_ENV === 'production') {
 import { authRoutes } from './api/auth/auth.routes.js'
 import { userRoutes } from './api/user/user.routes.js'
 import { toyRoutes } from './api/toy/toy.routes.js'
+import { reviewRoutes } from './api/review/review.routes.js'
 
-
+import { setupAsyncLocalStorage } from './middlewares/setupAls.middleware.js'
+app.all('*', setupAsyncLocalStorage)
 // routes
 app.use('/api/auth', authRoutes)//login //signup //logout
 app.use('/api/user', userRoutes)//getuser //getusers // 
 app.use('/api/toy', toyRoutes)//gettoys //add
-
+app.use('/api/review', reviewRoutes)
 
 // Make every unmatched server-side-route fall back to index.html
 // So when requesting http://localhost:3030/index.html/car/123 it will still respond with

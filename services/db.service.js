@@ -1,5 +1,5 @@
 import MongoClient from 'mongodb'
-import { loggerService } from '../services/logger.service.js'
+
 import { config } from '../config/index.js'
 
 export const dbService = {
@@ -14,7 +14,7 @@ async function getCollection(collectionName) {
         const collection = await db.collection(collectionName)
         return collection
     } catch (err) {
-        loggerService.error('Failed to get Mongo collection', err)
+        logger.error('Failed to get Mongo collection', err)
         throw err
     }
 }
@@ -27,7 +27,7 @@ async function _connect() {
         dbConn = db
         return db
     } catch (err) {
-        loggerService.error('Cannot Connect to DB', err)
+        logger.error('Cannot Connect to DB', err)
         throw err
     }
 }
