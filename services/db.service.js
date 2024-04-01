@@ -1,4 +1,5 @@
-import MongoClient from 'mongodb'
+import mongoDB from 'mongodb'
+const { MongoClient } = mongoDB
 
 import { config } from '../config/index.js'
 import { loggerService } from '../services/logger.service.js'
@@ -22,7 +23,7 @@ async function getCollection(collectionName) {
 async function _connect() {
     if (dbConn) return dbConn
     try {
-        const client = await MongoClient.connect(config.dbURL, { useNewUrlParser: true, useUnifiedTopology: true })
+        const client = await MongoClient.connect(config.dbURL)
         const db = client.db(config.dbName)
         dbConn = db
         return db
@@ -31,3 +32,4 @@ async function _connect() {
         throw err
     }
 }
+
