@@ -26,10 +26,11 @@ async function query(filterBy, sortBy) {
         const collection = await dbService.getCollection('toy')
 
         let options = {}
+
         if (sortBy.type) {
             options.sort = { [sortBy.type]: parseInt(sortBy.dir, 10) }
         }
-        var toysToShow = await collection.find(criteria).toArray()
+        var toysToShow = await collection.find(criteria, options).sort(options.sort).toArray()
 
         // if (filterBy.pageIdx !== undefined) {
         //     const pageIdx = +filterBy.pageIdx
@@ -113,6 +114,44 @@ async function removeToyMsg(toyId, msgId) {
         loggerService.error(`cannot add toy msg ${toyId}`, err)
         throw err
     }
+}
+
+function _buildCriteria(filterBy) {
+    const { labels, txt, status } = filterBy
+
+    const criteria = {}
+
+    if (txt) {
+        criteria.name = { $regex: txt, $options: 'i' }
+    }
+
+    if (labels && labels.length) {
+        //every for objects labels
+        // const labelsCrit = labels.map(label => ({
+        //   labels: { $elemMatch: { title: label } },
+        // }))
+
+        //every for string labels
+        // const labelsCrit = labels.map((label) => ({
+        // 	labels: label,
+        // }))
+        // criteria.$and = labelsCrit
+        // criteria.labels =  { $all: labels }
+
+        // for some for string labels
+
+        criteria.labels = { $in: labels } //['Doll']
+    }
+
+    if (status) {
+        criteria.inStock = status === 'true' ? true : false
+    }
+    if (status) {
+        criteria.inStock = status === 'true' ? true : false
+    }
+    console.log('criteria', criteria)
+
+    return criteria
 }
 
 export const toyService = {
