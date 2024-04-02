@@ -34,7 +34,7 @@ async function query(filterBy, sortBy) {
         // if (filterBy.pageIdx !== undefined) {
         //     carCursor.skip(filterBy.pageIdx * PAGE_SIZE).limit(PAGE_SIZE)     
         // }
-        console.log(toysToShow);
+
         return toysToShow
     } catch (err) {
         loggerService.error('cannot find toys', err)

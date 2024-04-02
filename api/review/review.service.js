@@ -10,7 +10,7 @@ async function query(filterBy = {}) {
         const criteria = _buildCriteria(filterBy)
         const collection = await dbService.getCollection('review')
         // const reviews = await collection.find(criteria).toArray()
-        // console.log("collection", reviews);
+
         var reviews = await collection.aggregate([
             {
                 $match: criteria
@@ -40,16 +40,16 @@ async function query(filterBy = {}) {
                 $unwind: '$toy'
             }
         ]).toArray()
-        console.log("before map", reviews);
+
         reviews = reviews.map(review => {
             review.byUser = { _id: review.byUser._id, fullname: review.byUser.fullname }
             review.toy = { _id: review.toy._id, name: review.toy.name, price: review.toy.price }
             delete review.userId
             delete review.toyId
-            console.log(review);
+
             return review
         })
-        console.log("blbl", reviews);
+
         return reviews
     } catch (err) {
         loggerService.error('cannot find reviews', err)
